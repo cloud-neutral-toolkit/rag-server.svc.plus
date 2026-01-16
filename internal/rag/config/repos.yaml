@@ -1,0 +1,4 @@
+repos:
+  - url: https://github.com/example/docs.git
+    branch: main
+    path: data/docs
