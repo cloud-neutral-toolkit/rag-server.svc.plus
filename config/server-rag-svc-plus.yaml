@@ -1,0 +1,14 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: 120s
+  write_timeout: 120s
+
+vector_db:
+  pgurl: "postgres://shenlan:password@127.0.0.1:15432/knowledge_db?sslmode=disable"
+  pg_host: "127.0.0.1"
+  pg_port: 15432
+  pg_user: "shenlan"
+  pg_password: "password"
+  pg_db_name: "knowledge_db"
+  pg_sslmode: "disable"

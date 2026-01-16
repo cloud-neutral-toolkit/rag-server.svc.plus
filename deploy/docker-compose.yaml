@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  rag-server:
+    image: rag-server:local
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      CONFIG_PATH: /etc/rag-server/server.yaml
+    volumes:
+      - ../config/server.yaml:/etc/rag-server/server.yaml:ro
+    depends_on:
+      - stunnel-client
+    ports:
+      - "8090:8090"
+
+  stunnel-client:
+    image: stunnel-client:local
+    build:
+      context: ..
+      dockerfile: deploy/stunnel-client/Dockerfile
+    command: ["/usr/bin/stunnel", "/etc/stunnel/rag-db-client.conf"]
+    volumes:
+      - ../deploy/templates/etc/stunnel/rag-db-client.conf:/etc/stunnel/rag-db-client.conf:ro
+    network_mode: host
+
+  caddy:
+    image: caddy:2
+    volumes:
+      - ../deploy/templates/etc/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - "443:443"
+    depends_on:
+      - rag-server
+
+  rag-cli:
+    image: rag-cli:local
+    build:
+      context: ..
+      dockerfile: deploy/rag-cli/Dockerfile
+    command: ["--config", "/etc/rag-server/server.yaml"]
+    environment:
+      SERVER_URL: "http://rag-server:8090"
+    volumes:
+      - ../config/server.yaml:/etc/rag-server/server.yaml:ro
+    depends_on:
+      - rag-server
+
+  ragbench:
+    image: ragbench:local
+    build:
+      context: ..
+      dockerfile: deploy/ragbench/Dockerfile
+    command: ["-in", "/data/queries.example.yaml", "-api", "http://rag-server:8090", "-out", "/data/report.md"]
+    volumes:
+      - ../cmd/ragbench:/data
+    depends_on:
+      - rag-server
+
+volumes:
+  caddy_data:
+  caddy_config:
