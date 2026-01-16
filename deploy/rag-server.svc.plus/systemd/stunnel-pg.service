@@ -1,0 +1,15 @@
+[Unit]
+Description=stunnel client for rag-server DB tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/stunnel /etc/stunnel/rag-db-client.conf
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=3s
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

@@ -130,12 +130,13 @@ var rootCmd = &cobra.Command{
 			middlewareConfig := auth.DefaultMiddlewareConfig(authClient)
 
 			// 添加健康检查跳过路径
-			middlewareConfig.SkipPaths = append(middlewareConfig.SkipPaths, "/healthz", "/ping")
+			middlewareConfig.SkipPaths = append(middlewareConfig.SkipPaths, "/health", "/healthz", "/ping")
 
 			// 应用中间件（全局）
 			r.Use(auth.VerifyTokenMiddleware(middlewareConfig))
 
 			// 添加健康检查路由
+			r.GET("/health", auth.HealthCheckHandler(authClient))
 			r.GET("/healthz", auth.HealthCheckHandler(authClient))
 			r.GET("/ping", auth.HealthCheckHandler(authClient))
 
@@ -145,12 +146,14 @@ var rootCmd = &cobra.Command{
 			)
 		} else {
 			logger.Warn("authentication is disabled")
-			r.GET("/healthz", func(c *gin.Context) {
+			healthHandler := func(c *gin.Context) {
 				c.JSON(http.StatusOK, gin.H{
 					"status": "ok",
 					"auth":   "disabled",
 				})
-			})
+			}
+			r.GET("/health", healthHandler)
+			r.GET("/healthz", healthHandler)
 		}
 
 		server.UseCORS(r, logger, cfg.Server)
