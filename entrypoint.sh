@@ -26,4 +26,4 @@ if [ -n "${PORT:-}" ]; then
   CONFIG_FILE="${tmp_cfg}"
 fi
 
-exec /usr/local/bin/xcontrol-server --config "${CONFIG_FILE}" "$@"
+exec /usr/local/bin/rag-server --config "${CONFIG_FILE}" "$@"

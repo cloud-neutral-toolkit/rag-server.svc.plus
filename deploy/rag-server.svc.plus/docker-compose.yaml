@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  rag-server:
+    image: rag-server:local
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    environment:
+      CONFIG_PATH: /etc/rag-server/server.yaml
+      DATABASE_URL: "postgres://user:pass@127.0.0.1:15432/rag?sslmode=disable"
+    volumes:
+      - ./config/server.compose.yaml:/etc/rag-server/server.yaml:ro
+    expose:
+      - "8080"
+
+  stunnel-pg:
+    image: stunnel-client:local
+    build:
+      context: ../..
+      dockerfile: deploy/stunnel-client/Dockerfile
+    command: ["/etc/stunnel/rag-db-client.conf"]
+    volumes:
+      - ./etc/stunnel/rag-db-client.conf:/etc/stunnel/rag-db-client.conf:ro
+    network_mode: "service:rag-server"
+    depends_on:
+      - rag-server
+
+  caddy:
+    image: caddy:2
+    volumes:
+      - ./etc/caddy/Caddyfile.compose:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - "443:443"
+    depends_on:
+      - rag-server
+
+volumes:
+  caddy_data:
+  caddy_config:

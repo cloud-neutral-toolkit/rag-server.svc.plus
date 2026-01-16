@@ -1,0 +1,14 @@
+server:
+  addr: "127.0.0.1:8080"
+  readTimeout: 30s
+  writeTimeout: 30s
+  publicUrl: "https://rag-server.svc.plus"
+  allowedOrigins:
+    - "https://rag-server.svc.plus"
+
+auth:
+  enable: false
+
+global:
+  vectordb:
+    pgurl: "postgres://user:pass@127.0.0.1:15432/rag?sslmode=disable"

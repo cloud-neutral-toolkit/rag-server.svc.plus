@@ -1,0 +1,4 @@
+rag-server.svc.plus {
+  encode gzip
+  reverse_proxy rag-server:8080
+}
