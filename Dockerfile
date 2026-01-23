@@ -26,10 +26,11 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+COPY config/server.yaml /etc/rag-server/server.yaml
 COPY --from=builder /src/rag-server /usr/local/bin/rag-server
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-EXPOSE 8090
+EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
