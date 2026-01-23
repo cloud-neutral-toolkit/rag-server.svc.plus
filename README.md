@@ -1,6 +1,6 @@
 # RAG Server
 
-The **XControl RAG Server** (`rag-server`) is a high-performance, modular backend designed to power Retrieval-Augmented Generation (RAG) applications. It functions as the core "Knowledge Engine" of the [XControl](https://svc.plus) platform.
+The **XControl RAG Server** (`rag-server`) is a high-performance, modular backend designed to power Retrieval-Augmented Generation (RAG) applications. It functions as the core "Knowledge Engine" of the [console.svc.plus](https://svc.plus) platform.
 
 ## 🚀 Key Features
 
