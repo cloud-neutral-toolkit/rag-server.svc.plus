@@ -16,9 +16,9 @@ type Log struct {
 	Level string `yaml:"level"`
 }
 
-type Redis struct {
-	Addr     string `yaml:"addr"`
-	Password string `yaml:"password"`
+type CacheCfg struct {
+	Table      string   `yaml:"table"`
+	DefaultTTL Duration `yaml:"defaultTTL"`
 }
 
 type VectorDB struct {
@@ -56,7 +56,7 @@ type Datasource struct {
 }
 
 type Global struct {
-	Redis       Redis        `yaml:"redis"`
+	Cache       CacheCfg     `yaml:"cache"`
 	VectorDB    VectorDB     `yaml:"vectordb"`
 	Datasources []Datasource `yaml:"datasources"`
 	Proxy       string       `yaml:"proxy"`
