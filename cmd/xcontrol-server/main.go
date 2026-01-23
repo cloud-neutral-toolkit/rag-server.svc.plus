@@ -159,7 +159,9 @@ var rootCmd = &cobra.Command{
 		server.UseCORS(r, logger, cfg.Server)
 
 		addr := cfg.Server.Addr
-		if addr == "" {
+		if port := os.Getenv("PORT"); port != "" {
+			addr = ":" + port
+		} else if addr == "" {
 			addr = ":8080"
 		}
 
