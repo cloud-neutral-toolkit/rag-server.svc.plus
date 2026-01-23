@@ -59,6 +59,19 @@ var rootCmd = &cobra.Command{
 		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level}))
 		slog.SetDefault(logger)
 
+		// Environment variable overrides for Cloud Run / Container support
+		if redisAddr := os.Getenv("REDIS_ADDR"); redisAddr != "" {
+			cfg.Global.Redis.Addr = redisAddr
+		}
+		if redisPwd := os.Getenv("REDIS_PASSWORD"); redisPwd != "" {
+			cfg.Global.Redis.Password = redisPwd
+		}
+		if pgURL := os.Getenv("DATABASE_URL"); pgURL != "" {
+			cfg.Global.VectorDB.PGURL = pgURL
+		} else if pgURL := os.Getenv("PG_URL"); pgURL != "" {
+			cfg.Global.VectorDB.PGURL = pgURL
+		}
+
 		api.ConfigureServiceDB(nil)
 		dsn := cfg.Global.VectorDB.DSN()
 		var (
