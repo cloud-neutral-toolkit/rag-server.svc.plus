@@ -337,21 +337,22 @@ type Claims struct {
 
 每个环境使用不同的密钥。
 
-### Q: 如何集成 Redis 缓存？
+### Q: 如何集成 Postgres 缓存？
 
-**A:** 在中间件中添加 Redis 检查：
+**A:** 使用 UNLOGGED + hstore 的缓存表，通过 `TokenCache` 缓存已验证的 token：
 
 ```go
-func (s *TokenService) AuthMiddlewareWithRedis() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        // 检查 Redis 中的黑名单
-        if isTokenBlacklisted(token) {
-            c.JSON(401, gin.H{"error": "Token revoked"})
-            return
-        }
-        // 验证令牌...
-    }
+cacheStore := cache.NewPostgresStore(conn, cache.Options{
+    Table:      "cache_kv",
+    DefaultTTL: 5 * time.Minute,
+})
+if err := cacheStore.EnsureSchema(context.Background()); err != nil {
+    return err
 }
+
+middlewareConfig := auth.DefaultMiddlewareConfig(authClient)
+middlewareConfig.TokenCache = auth.NewTokenCache(cacheStore)
+middlewareConfig.CacheTTL = 5 * time.Minute
 ```
 
 ## 许可证

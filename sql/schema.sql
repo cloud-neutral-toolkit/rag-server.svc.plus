@@ -9,6 +9,7 @@ SET statement_timeout = '0';
 -- 1. 必要扩展：向量 + 中文分词
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_jieba;
+CREATE EXTENSION IF NOT EXISTS hstore;
 
 -- 2. 中文 + 英文混合全文检索配置（pg_jieba + simple）
 -- 自定义配置名：jieba_search
@@ -63,3 +64,14 @@ CREATE INDEX IF NOT EXISTS idx_documents_tsv
 -- 7. 复合索引
 CREATE INDEX IF NOT EXISTS idx_documents_repo_path
   ON public.documents (repo, path);
+
+-- 8. 缓存表（UNLOGGED + hstore）
+CREATE UNLOGGED TABLE IF NOT EXISTS public.cache_kv (
+    key        TEXT PRIMARY KEY,
+    value      HSTORE NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS cache_kv_expires_at_idx
+  ON public.cache_kv (expires_at);

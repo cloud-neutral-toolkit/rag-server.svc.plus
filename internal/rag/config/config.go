@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -23,6 +24,39 @@ type VectorDB struct {
 	PGPassword string `yaml:"pg_password"`
 	PGDBName   string `yaml:"pg_db_name"`
 	PGSSLMode  string `yaml:"pg_sslmode"`
+}
+
+// Duration is a thin wrapper around time.Duration to support YAML unmarshalling.
+type Duration struct {
+	time.Duration
+}
+
+// UnmarshalYAML implements yaml unmarshalling for Duration values.
+func (d *Duration) UnmarshalYAML(value *yaml.Node) error {
+	var raw string
+	if err := value.Decode(&raw); err != nil {
+		return err
+	}
+	if raw == "" {
+		d.Duration = 0
+		return nil
+	}
+	parsed, err := time.ParseDuration(raw)
+	if err != nil {
+		return err
+	}
+	d.Duration = parsed
+	return nil
+}
+
+// String returns the duration formatted using time.Duration's String method.
+func (d Duration) String() string {
+	return d.Duration.String()
+}
+
+type CacheCfg struct {
+	Table      string   `yaml:"table"`
+	DefaultTTL Duration `yaml:"defaultTTL"`
 }
 
 // DSN returns the PostgreSQL connection string derived from individual fields
@@ -47,10 +81,7 @@ func (v VectorDB) DSN() string {
 
 // Global configuration shared by server and CLI.
 type Global struct {
-	Redis struct {
-		Addr     string `yaml:"addr"`
-		Password string `yaml:"password"`
-	} `yaml:"redis"`
+	Cache       CacheCfg     `yaml:"cache"`
 	VectorDB    VectorDB     `yaml:"vectordb"`
 	Datasources []DataSource `yaml:"datasources"`
 	Proxy       string       `yaml:"proxy"`

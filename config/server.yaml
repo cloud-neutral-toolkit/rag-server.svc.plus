@@ -20,9 +20,9 @@ auth:
   publicToken: "xcontrol-public-token-2025"
 
 global:
-  redis:
-    addr: "127.0.0.1:6379"
-    password: ""
+  cache:
+    table: "cache_kv"
+    defaultTTL: 5m
   vectordb:
     pgurl: "postgres://shenlan:password@127.0.0.1:5432/shenlan"
   datasources:
