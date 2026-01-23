@@ -1,16 +1,14 @@
-# XControl RAG Server
+# RAG Server
 
-The **XControl RAG Server** (`rag-server`) is a high-performance, modular backend designed to power Retrieval-Augmented Generation (RAG) applications. It provides APIs for knowledge base synchronization, vector storage (pgvector), semantic search, and LLM-based question answering.
-
-This service is the core "Knowledge Engine" of the [XControl](https://svc.plus) platform/ecosystem but can function as a standalone RAG backend.
+The **XControl RAG Server** (`rag-server`) is a high-performance, modular backend designed to power Retrieval-Augmented Generation (RAG) applications. It functions as the core "Knowledge Engine" of the [console.svc.plus](https://svc.plus) platform.
 
 ## 🚀 Key Features
 
-- **Store & Retrieve**: Efficient vector storage and semantic search using **PostgreSQL + pgvector**.
-- **Knowledge Sync**: Git-Ops style knowledge management. Sync content directly from Git repositories.
-- **Model Agnostic**: Compatible with OpenAI API format, supporting providers like **Chutes.ai** and local runners like **Ollama**.
-- **Cloud Native**: Designed for serverless deployment (Google Cloud Run), with environment-based configuration.
-- **Secure**: Integrated authentication middleware (optional) and robust configuration management.
+*   **Store & Retrieve**: Efficient vector storage and semantic search using **PostgreSQL + pgvector**.
+*   **Knowledge Sync**: Git-Ops style knowledge management. Sync content directly from Git repositories.
+*   **Model Agnostic**: Compatible with OpenAI API format (Chutes.ai, Ollama, etc.).
+*   **Cloud Native**: Designed for serverless deployment (Google Cloud Run).
+*   **Secure**: Integrated authentication middleware.
 
 ## 🛠 Tech Stack
 
@@ -84,19 +82,14 @@ docker run -p 8080:8080 -e PORT=8080 -e DATABASE_URL="..." rag-server
 
 ## 🔌 API Reference
 
-### RAG & AI
-- `POST /api/askai`: Ask a question. Returns LLM answer + source chunks.
-    - Body: `{"question": "How to configure XControl?"}`
-- `POST /api/rag/query`: Semantic search only. Returns relevant document chunks.
-    - Body: `{"question": "backup policy"}`
-- `POST /api/rag/upsert`: Manually index documents.
+## 📚 Documentation
 
-### Knowledge Sync
-- `POST /api/sync`: Trigger a sync from a remote Git repository.
-    - Body: `{"repo_url": "...", "local_path": "..."}`
+Detailed documentation is available in the [`docs/`](./docs) directory:
 
-### System
-- `GET /health` / `GET /healthz`: Health check endpoints.
+*   [**Getting Started**](./docs/getting-started.md): Installation and local development guide.
+*   [**Configuration**](./docs/configuration.md): Environment variables and `server.yaml` settings.
+*   [**Deployment**](./docs/deployment.md): Docker and Cloud Run deployment instructions.
+*   [**API Reference**](./docs/api-reference.md): details on RAG, Sync, and System endpoints.
 
 ## 📜 License
 
