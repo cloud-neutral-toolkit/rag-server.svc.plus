@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
-	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -20,6 +20,7 @@ import (
 	"rag-server/api"
 	"rag-server/config"
 	"rag-server/internal/auth"
+	"rag-server/internal/cache"
 	rconfig "rag-server/internal/rag/config"
 	"rag-server/proxy"
 )
@@ -60,12 +61,6 @@ var rootCmd = &cobra.Command{
 		slog.SetDefault(logger)
 
 		// Environment variable overrides for Cloud Run / Container support
-		if redisAddr := os.Getenv("REDIS_ADDR"); redisAddr != "" {
-			cfg.Global.Redis.Addr = redisAddr
-		}
-		if redisPwd := os.Getenv("REDIS_PASSWORD"); redisPwd != "" {
-			cfg.Global.Redis.Password = redisPwd
-		}
 		if pgURL := os.Getenv("DATABASE_URL"); pgURL != "" {
 			cfg.Global.VectorDB.PGURL = pgURL
 		} else if pgURL := os.Getenv("PG_URL"); pgURL != "" {
@@ -80,7 +75,9 @@ var rootCmd = &cobra.Command{
 		)
 		if dsn != "" {
 			logger.Debug("connecting to postgres", "dsn", dsn)
-			conn, err = pgx.Connect(context.Background(), dsn)
+			connectCtx, connectCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			conn, err = pgx.Connect(connectCtx, dsn)
+			connectCancel()
 			if err != nil {
 				logger.Error("postgres connect error", "err", err)
 			} else {
@@ -109,19 +106,24 @@ var rootCmd = &cobra.Command{
 			}()
 		}
 
-		if addr := cfg.Global.Redis.Addr; addr != "" {
-			logger.Debug("connecting to redis", "addr", addr)
-			rdb := redis.NewClient(&redis.Options{
-				Addr:     addr,
-				Password: cfg.Global.Redis.Password,
+		var tokenCache *auth.TokenCache
+		if conn != nil {
+			cacheStore := cache.NewPostgresStore(conn, cache.Options{
+				Table:      cfg.Global.Cache.Table,
+				DefaultTTL: cfg.Global.Cache.DefaultTTL.Duration,
 			})
-			if err := rdb.Ping(context.Background()).Err(); err != nil {
-				logger.Error("redis connect error", "err", err)
+			if err := cacheStore.EnsureSchema(context.Background()); err != nil {
+				logger.Error("cache schema init failed", "err", err)
 			} else {
-				logger.Info("redis connected")
+				tokenCache = auth.NewTokenCache(cacheStore)
+				cacheTable := cfg.Global.Cache.Table
+				if cacheTable == "" {
+					cacheTable = "cache_kv"
+				}
+				logger.Info("postgres cache ready", "table", cacheTable)
 			}
 		} else {
-			logger.Warn("redis addr not provided")
+			logger.Warn("postgres cache disabled; no database connection")
 		}
 
 		r := server.New(
@@ -141,6 +143,10 @@ var rootCmd = &cobra.Command{
 
 			// 创建中间件配置
 			middlewareConfig := auth.DefaultMiddlewareConfig(authClient)
+			if cfg.Global.Cache.DefaultTTL.Duration > 0 {
+				middlewareConfig.CacheTTL = cfg.Global.Cache.DefaultTTL.Duration
+			}
+			middlewareConfig.TokenCache = tokenCache
 
 			// 添加健康检查跳过路径
 			middlewareConfig.SkipPaths = append(middlewareConfig.SkipPaths, "/health", "/healthz", "/ping")

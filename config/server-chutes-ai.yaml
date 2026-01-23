@@ -1,8 +1,8 @@
 global:
   #proxy: socks5://127.0.0.1:1080
-  redis:
-    addr: "127.0.0.1:6379"
-    password: ""
+  cache:
+    table: "cache_kv"
+    defaultTTL: 5m
   vectordb:
     pgurl: "postgres://shenlan:password@127.0.0.1:5432/shenlan"
   datasources:

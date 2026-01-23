@@ -366,7 +366,7 @@ openssl rand -base64 32
 ## 性能优化
 
 ### 1. 缓存策略
-- 将用户信息缓存在 Redis
+- 将用户信息缓存在 Postgres（UNLOGGED + hstore）
 - 使用本地内存缓存（短期）
 - 实现分布式缓存（多实例）
 
