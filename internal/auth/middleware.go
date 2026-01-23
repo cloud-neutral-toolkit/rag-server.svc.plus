@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -60,12 +61,7 @@ func (s *TokenService) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Store claims in context
-		ctx := context.WithValue(c.Request.Context(), userIDKey, claims.UserID)
-		ctx = context.WithValue(ctx, emailKey, claims.Email)
-		ctx = context.WithValue(ctx, rolesKey, claims.Roles)
-		ctx = context.WithValue(ctx, serviceKey, claims.Service)
-		c.Request = c.Request.WithContext(ctx)
+		applyClaims(c, claims)
 
 		c.Next()
 	}
@@ -136,9 +132,81 @@ func GetRoles(c *gin.Context) []string {
 
 // VerifyTokenMiddleware creates a middleware that verifies JWT tokens
 func VerifyTokenMiddleware(config *MiddlewareConfig) gin.HandlerFunc {
-	// For now, just return the basic auth middleware
-	// The config parameters (SkipPaths, CacheTTL) can be used for optimization
-	return (&TokenService{}).AuthMiddleware()
+	if config == nil {
+		config = DefaultMiddlewareConfig(nil)
+	}
+	service := config.TokenService
+	if service == nil {
+		service = &TokenService{}
+	}
+	return func(c *gin.Context) {
+		if shouldSkipPath(c.Request.URL.Path, config.SkipPaths) {
+			c.Next()
+			return
+		}
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "missing authorization header",
+			})
+			c.Abort()
+			return
+		}
+
+		if !strings.HasPrefix(authHeader, bearerPrefix) {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid authorization header format",
+			})
+			c.Abort()
+			return
+		}
+
+		token := strings.TrimPrefix(authHeader, bearerPrefix)
+		if config.TokenCache != nil && config.CacheTTL > 0 {
+			claims, ok, err := config.TokenCache.Get(c.Request.Context(), token)
+			if err == nil && ok {
+				if claims.Service == "rag-server" {
+					applyClaims(c, claims)
+					c.Next()
+					return
+				}
+			}
+		}
+
+		claims, err := service.ValidateAccessToken(token)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error":  "invalid or expired token",
+				"detail": err.Error(),
+			})
+			c.Abort()
+			return
+		}
+
+		if claims.Service != "rag-server" {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "invalid token for this service",
+			})
+			c.Abort()
+			return
+		}
+
+		if config.TokenCache != nil && config.CacheTTL > 0 {
+			ttl := config.CacheTTL
+			if claims.ExpiresAt != nil {
+				remaining := time.Until(claims.ExpiresAt.Time)
+				if remaining < ttl {
+					ttl = remaining
+				}
+			}
+			if ttl > 0 {
+				_ = config.TokenCache.Set(c.Request.Context(), token, claims, ttl)
+			}
+		}
+
+		applyClaims(c, claims)
+		c.Next()
+	}
 }
 
 // HealthCheckHandler returns a health check handler
@@ -149,4 +217,21 @@ func HealthCheckHandler(client *AuthClient) gin.HandlerFunc {
 			"auth":   "enabled",
 		})
 	}
+}
+
+func applyClaims(c *gin.Context, claims *Claims) {
+	ctx := context.WithValue(c.Request.Context(), userIDKey, claims.UserID)
+	ctx = context.WithValue(ctx, emailKey, claims.Email)
+	ctx = context.WithValue(ctx, rolesKey, claims.Roles)
+	ctx = context.WithValue(ctx, serviceKey, claims.Service)
+	c.Request = c.Request.WithContext(ctx)
+}
+
+func shouldSkipPath(path string, skipPaths []string) bool {
+	for _, skip := range skipPaths {
+		if skip == path {
+			return true
+		}
+	}
+	return false
 }

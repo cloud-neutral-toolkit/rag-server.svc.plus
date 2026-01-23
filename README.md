@@ -17,7 +17,7 @@ This service is the core "Knowledge Engine" of the [XControl](https://svc.plus) 
 - **Language**: Go 1.25+
 - **Web Framework**: Gin
 - **Database**: PostgreSQL 16 (pgvector extension required)
-- **Cache**: Redis
+- **Cache**: PostgreSQL (hstore + unlogged cache table)
 - **Authentication**: JWT / XControl Auth Service
 
 ## 📦 Getting Started
@@ -25,8 +25,7 @@ This service is the core "Knowledge Engine" of the [XControl](https://svc.plus) 
 ### Prerequisites
 
 - **Go** 1.24 or higher
-- **PostgreSQL** with `vector` and `zhparser` extensions enabled.
-- **Redis**
+- **PostgreSQL** with `vector`, `pg_jieba`, and `hstore` extensions enabled.
 
 ### Local Development
 
@@ -58,8 +57,6 @@ The application uses `server.yaml` for base configuration but prioritizes Enviro
 | Setting | Env Variable | Default | Description |
 | :--- | :--- | :--- | :--- |
 | **Port** | `PORT` | `8090` | HTTP listening port. |
-| **Redis Address** | `REDIS_ADDR` | `127.0.0.1:6379` | Redis connection string. |
-| **Redis Password** | `REDIS_PASSWORD` | - | Redis password. |
 | **Database URL** | `DATABASE_URL` / `PG_URL` | - | Full Postgres connection URL (e.g., `postgres://user:pass@host:5432/db`). |
 | **LLM Token** | `CHUTES_API_TOKEN` | - | API Token for the LLM provider. |
 | **LLM Endpoint** | `CHUTES_API_URL` | - | Base URL for LLM chat completions. |

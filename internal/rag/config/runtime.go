@@ -116,10 +116,7 @@ func (c *Config) ResolveServerURL() string {
 
 // Runtime holds runtime configuration for RAG features.
 type Runtime struct {
-	Redis struct {
-		Addr     string `yaml:"addr"`
-		Password string `yaml:"password"`
-	} `yaml:"redis"`
+	Cache       CacheCfg     `yaml:"cache"`
 	VectorDB    VectorDB     `yaml:"vectordb"`
 	Datasources []DataSource `yaml:"datasources"`
 	Proxy       string       `yaml:"proxy"`
@@ -169,7 +166,7 @@ func LoadServer() (*Runtime, error) {
 		Datasources: cfg.Global.Datasources,
 		Proxy:       cfg.Global.Proxy,
 	}
-	rt.Redis = cfg.Global.Redis
+	rt.Cache = cfg.Global.Cache
 	rt.Embedding = cfg.ResolveEmbedding()
 	rt.Reranker = cfg.Models.Reranker
 	rt.Retrieval = cfg.Retrieval
@@ -182,7 +179,7 @@ func (rt *Runtime) ToConfig() *Config {
 		return nil
 	}
 	var c Config
-	c.Global.Redis = rt.Redis
+	c.Global.Cache = rt.Cache
 	c.Global.VectorDB = rt.VectorDB
 	c.Global.Datasources = rt.Datasources
 	c.Global.Proxy = rt.Proxy

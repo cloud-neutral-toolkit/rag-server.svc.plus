@@ -59,16 +59,22 @@ func NewAuthClient(config *TokenConfig) *AuthClient {
 
 // MiddlewareConfig holds middleware configuration
 type MiddlewareConfig struct {
-	SkipPaths []string
-	CacheTTL  time.Duration
+	SkipPaths    []string
+	CacheTTL     time.Duration
+	TokenCache   *TokenCache
+	TokenService *TokenService
 }
 
 // DefaultMiddlewareConfig creates default middleware configuration
 func DefaultMiddlewareConfig(client *AuthClient) *MiddlewareConfig {
-	return &MiddlewareConfig{
+	cfg := &MiddlewareConfig{
 		SkipPaths: []string{},
 		CacheTTL:  time.Minute * 5,
 	}
+	if client != nil {
+		cfg.TokenService = client.TokenService
+	}
+	return cfg
 }
 
 // TokenConfig holds configuration for token service
