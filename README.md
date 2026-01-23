@@ -1,149 +1,106 @@
-# XControl
+# XControl RAG Server
 
-XControl is a modular multi-tenant management platform written in Go. The project integrates several optional components to provide a visual control plane for traffic statistics, configuration export and multi-node management.
+The **XControl RAG Server** (`rag-server`) is a high-performance, modular backend designed to power Retrieval-Augmented Generation (RAG) applications. It provides APIs for knowledge base synchronization, vector storage (pgvector), semantic search, and LLM-based question answering.
 
-This repository contains the API server, agent code and a Next.js-based UI.
+This service is the core "Knowledge Engine" of the [XControl](https://svc.plus) platform/ecosystem but can function as a standalone RAG backend.
 
-## Components
+## 🚀 Key Features
 
-- **dashboard**
-- **ui-panel**
-- **xcontrol-cli**
-- **xcontrol-server**
-- **markdown studio** (NeuraPress-based, MIT-licensed) available at `/editor` (public)
-  and `/dashboard/cms` (SaaS shell). The upstream license and NOTICE live under
-  `packages/neurapress`, keeping attribution to
-  [tianyaxiang](https://github.com/tianyaxiang/neurapress).
+- **Store & Retrieve**: Efficient vector storage and semantic search using **PostgreSQL + pgvector**.
+- **Knowledge Sync**: Git-Ops style knowledge management. Sync content directly from Git repositories.
+- **Model Agnostic**: Compatible with OpenAI API format, supporting providers like **Chutes.ai** and local runners like **Ollama**.
+- **Cloud Native**: Designed for serverless deployment (Google Cloud Run), with environment-based configuration.
+- **Secure**: Integrated authentication middleware (optional) and robust configuration management.
 
-### NeuraPress integration · 集成说明
+## 🛠 Tech Stack
 
-The `/editor` route ships the original NeuraPress online editing core vendored under
-`packages/neurapress`. Routing, authentication, and storage selection are layered on
-top inside XControl, while the editing experience stays aligned with the upstream project.
+- **Language**: Go 1.25+
+- **Web Framework**: Gin
+- **Database**: PostgreSQL 16 (pgvector extension required)
+- **Cache**: Redis
+- **Authentication**: JWT / XControl Auth Service
 
-上游 NeuraPress 由 tianyaxiang 以 MIT 协议发布。本项目在 `packages/neurapress` 中保留
-LICENSE 与 NOTICE 以持续标注版权与来源。
+## 📦 Getting Started
 
+### Prerequisites
 
-All UI components provide both Chinese and English interfaces.
+- **Go** 1.24 or higher
+- **PostgreSQL** with `vector` and `zhparser` extensions enabled.
+- **Redis**
 
-## Tech Stack
+### Local Development
 
-| Category         | Technology                 | Version                    |
-|------------------|----------------------------|----------------------------|
-| Gateway          | OpenResty                  | 1.27.1.2                   |
-| BackendFramework | Go                         | 1.24                       |
-| FrontFramework   | Deno/Fresh/Preact/signals  | 2.5.6/v1.7.3/10.22.0/1.2.2 |
-| Cache            | Redis                      | 8.2.0                      |
-| Database         | PostgreSQL + pgvector      | 16                         |
-| Model (Local)    | HuggingFace Hub + Ollama | baai/bge-m3, llama2:13b      |
-| Model (Online)   | Chutes.AI  | baai/bge-m3, moonshotai/Kimi-K2-Instruct   |
+1.  **Clone and Init**:
+    ```bash
+    make init
+    ```
 
-## LangChainGo 核心功能集成一览
+2.  **Database Setup**:
+    Ensure you have a Postgres instance running. Then initialize the schema:
+    ```bash
+    # Update Makefile DB credentials if necessary or set via env vars
+    make init-db
+    ```
 
-XControl 通过 LangChainGo 统一接入多种大模型，并为 AskAI、CLI 与 Server 提供链式调用能力：
+3.  **Run Locally**:
+    ```bash
+    # Run with hot-reload (requires air) or standard go run
+    make dev
+    ```
 
-- **LLM 接口层（Model I/O）**：统一调用 Hugging Face、Ollama、OpenAI 兼容模型接口。
-- **Chains（链式流程）**：将 prompt、检索结果、工具调用等组合成完整流程，支持 RAG、聊天、代码生成等场景。
-- **工具与 Agent 体系**：定义 Web 搜索、实现 ReAct 风格的工具调用。
-- **向量检索与数据接入**：适配 PGVector 向量存储。
-- **文档加载与分块**：提供 Document Loaders 与 Text Splitters，用于处理长文本与构建向量检索块。
-- **Memory 与历史追踪**：支持 Conversation Buffer 等对话记忆机制，增强交互体验。
+4.  **Configuration**:
+    The server looks for `config/server.yaml`. You can override defaults using environment variables (see below).
 
+## ⚙️ Configuration
 
-## CMS configuration
+The application uses `server.yaml` for base configuration but prioritizes Environment Variables—making it ideal for **Cloud Run** or K8s.
 
-A unified CMS setup is defined in [`config/cms.json`](config/cms.json). The schema at [`config/cms.schema.json`](config/cms.schema.json) ensures templates, themes, extensions and content sources stay in sync across deployments.
+| Setting | Env Variable | Default | Description |
+| :--- | :--- | :--- | :--- |
+| **Port** | `PORT` | `8090` | HTTP listening port. |
+| **Redis Address** | `REDIS_ADDR` | `127.0.0.1:6379` | Redis connection string. |
+| **Redis Password** | `REDIS_PASSWORD` | - | Redis password. |
+| **Database URL** | `DATABASE_URL` / `PG_URL` | - | Full Postgres connection URL (e.g., `postgres://user:pass@host:5432/db`). |
+| **LLM Token** | `CHUTES_API_TOKEN` | - | API Token for the LLM provider. |
+| **LLM Endpoint** | `CHUTES_API_URL` | - | Base URL for LLM chat completions. |
+| **LLM Model** | `CHUTES_API_MODEL` | - | Model name to use (e.g., `deepseek-r1:8b`). |
 
-- Refer to [`docs/cms/README.md`](docs/cms/README.md) for usage instructions, extension development notes and theme customization guidelines.
-- Follow the migration playbook in [`docs/cms/migration-guide.md`](docs/cms/migration-guide.md) when switching existing sites to the CMS architecture.
+### `server.yaml` Example
+See `config/server.yaml` for the complete schema including detailed chunking, embedding, and auth settings.
 
-## Supported Platforms
+## ☁️ Deployment (Cloud Run)
 
-Tested on **Ubuntu 22.04 x64** and **macOS 26 arm64**.
-
-## Installation
-
-```bash
-make install
-make init-db   # initialize database (optional)
-```
-
-## Frontend configuration
-
-The Next.js dashboard now resolves service endpoints through `dashboard/config/runtime-service-config.yaml`. The runtime
-configuration selects values based on `NEXT_PUBLIC_RUNTIME_ENV` (falling back to `NODE_ENV` and the file's
-`defaultEnvironment`). Use `NEXT_PUBLIC_ACCOUNT_SERVICE_URL` for ad-hoc overrides, otherwise adjust the YAML file to specify
-environment-specific URLs such as `http://localhost:8080` for development/test and `https://accounts.svc.plus` for production.
-
-## Account service configuration
-
-`account/config/account.yaml` now accepts a `server.publicUrl` value such as `https://accounts.svc.plus:8443`. The account service
-uses this URL to derive a default CORS origin and to document the externally reachable host. Set `server.allowedOrigins` when you
-need to expose additional browser clients; omit it to fall back to the public URL or the local development origins
-(`http://localhost:3001` and `http://127.0.0.1:3001`).
-
-## Features
-- **XCloudFlow** Multi-cloud IaC engine built with Pulumi SDK and Go. GitHub →
-- **KubeGuard** Kubernetes cluster application and node-level backup system. GitHub →
-- **XConfig** Lightweight task execution & configuration orchestration engine. GitHub →
-- **CodePRobot** AI-driven GitHub Issue to Pull Request generator and code patching tool. GitHub →
-- **OpsAgent** AIOps-powered intelligent monitoring, anomaly detection and RCA. GitHub →
-- **XStream** Cross-border developer proxy accelerator for global accessibility. GitHub →
-
-The [docs](./docs) directory contains a more detailed [overview](./docs/overview.md) and design documents for each module.
-
-## Building
-```
-make build
-```
-This produces a binary under `bin/xcontrol`. Run `make agent` to build the node agent.
-
-## Testing
-```
-make test
-```
-
-## Deployment
+This project includes a `Dockerfile` optimized for Cloud Run.
 
 ```bash
-make start
+# Build (or use GitHub Actions provided in .github/workflows)
+docker build -t rag-server .
+
+# Run
+docker run -p 8080:8080 -e PORT=8080 -e DATABASE_URL="..." rag-server
 ```
 
-This launches the server, dashboard and panel. Use `make stop` to stop all components.
+**Cloud Run Tips**:
+- Map the Cloud SQL instance using the Cloud Run SQL connection.
+- Set `DATABASE_URL` to the socket path or private IP.
+- Mount secrets for API keys.
 
-The API server also accepts a custom configuration file:
+## 🔌 API Reference
 
-```bash
-xcontrol-server --config path/to/server.yaml
-```
+### RAG & AI
+- `POST /api/askai`: Ask a question. Returns LLM answer + source chunks.
+    - Body: `{"question": "How to configure XControl?"}`
+- `POST /api/rag/query`: Semantic search only. Returns relevant document chunks.
+    - Body: `{"question": "backup policy"}`
+- `POST /api/rag/upsert`: Manually index documents.
 
-## Logging
+### Knowledge Sync
+- `POST /api/sync`: Trigger a sync from a remote Git repository.
+    - Body: `{"repo_url": "...", "local_path": "..."}`
 
-Both `xcontrol-cli` and `xcontrol-server` accept a `--log-level` flag to control verbosity. The level may be one of `debug`, `info`, `warn`, or `error`:
+### System
+- `GET /health` / `GET /healthz`: Health check endpoints.
 
-```bash
-xcontrol-cli --log-level debug
-xcontrol-server --log-level warn
-```
+## 📜 License
 
-The server's log level can also be set in the configuration file:
-
-```yaml
-log:
-  level: info
-```
-
-The flag value takes precedence over the configuration file.
-
-## Changelog
-
-See [docs/changelog.md](./docs/changelog.md) for a list of completed changes, including all work from Milestone&nbsp;1.
-
-## Roadmap
-
-The roadmap below is also available in [docs/Roadmap.md](./docs/Roadmap.md).
-
-## License
-
-This project is licensed under the terms of the [MIT License](./LICENSE).
+This project is licensed under the MIT License.
