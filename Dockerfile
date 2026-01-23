@@ -23,8 +23,10 @@ FROM ubuntu:24.04
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends ca-certificates stunnel4 gettext-base netcat-openbsd curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /var/run/stunnel \
+    && chown -R nobody:nogroup /var/run/stunnel
 
 COPY config/server.yaml /etc/rag-server/server.yaml
 COPY --from=builder /src/rag-server /usr/local/bin/rag-server
