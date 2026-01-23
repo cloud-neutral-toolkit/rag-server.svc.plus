@@ -1,0 +1,69 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: rag-server-svc-plus
+  labels:
+    cloud.googleapis.com/location: asia-northeast1
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/startup-cpu-boost: 'true'
+        autoscaling.knative.dev/maxScale: '20'
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      serviceAccountName: 266500572462-compute@developer.gserviceaccount.com
+      containers:
+      # --- 主应用容器 ---
+      - name: rag-server
+        image: asia-northeast1-docker.pkg.dev/xzerolab-480008/cloud-run-source-deploy/rag-server.svc.plus/rag-server-svc-plus:latest
+        ports:
+        - name: http1
+          containerPort: 8080
+        env:
+        - name: PGADMIN_PASSWORD
+          value: admin_password
+        - name: DATABASE_URL
+          value: postgres://postgres:admin_password@127.0.0.1:5432/postgres?sslmode=disable
+        - name: DB_HOST
+          value: "127.0.0.1"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: postgres
+        - name: DB_NAME
+          value: postgres
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          timeoutSeconds: 240
+          periodSeconds: 240
+          failureThreshold: 1
+          tcpSocket:
+            port: 8080
+
+      # --- Stunnel Sidecar 容器 ---
+      - name: stunnel-sidecar
+        image: dweomer/stunnel
+        volumeMounts:
+        - name: stunnel-conf-vol
+          mountPath: /etc/stunnel
+        command: ["stunnel", "/etc/stunnel/stunnel.conf"]
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128Mi
+
+      volumes:
+      - name: stunnel-conf-vol
+        secret:
+          secretName: stunnel-config
+          items:
+          - key: latest
+            path: stunnel.conf

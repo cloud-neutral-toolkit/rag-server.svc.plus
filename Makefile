@@ -14,7 +14,8 @@ SCHEMA_FILE := sql/schema.sql
 PSQL := psql "$(DB_URL)" -v ON_ERROR_STOP=1
 export PATH := /usr/local/go/bin:$(PATH)
 
-.PHONY: all build start stop restart clean init help dev test init-db reinit-db drop-db
+.PHONY: all build start stop restart clean init help dev test init-db reinit-db drop-db \
+	gcp-deploy gcp-replace-service
 
 all: build
 
@@ -119,3 +120,20 @@ help:
 	@echo "make init-db   初始化数据库 schema ($(SCHEMA_FILE))"
 	@echo "make drop-db   删除 RAG 相关数据库对象"
 	@echo "make reinit-db 重置数据库 schema (drop + init)"
+
+# =========================================
+# ☁️ Google Cloud Run
+# =========================================
+
+CLOUD_RUN_SERVICE := rag-server-svc-plus
+GCP_REGION        := asia-northeast1
+
+gcp-deploy:
+	gcloud run deploy $(CLOUD_RUN_SERVICE) \
+		--source . \
+		--region $(GCP_REGION) \
+		--update-secrets="DATABASE_URL=admin_password:latest" \
+		--set-env-vars="PGADMIN_PASSWORD=admin_password"
+
+gcp-replace-service:
+	gcloud run services replace deploy/gcp/cloud-run/service.yaml --region $(GCP_REGION)
