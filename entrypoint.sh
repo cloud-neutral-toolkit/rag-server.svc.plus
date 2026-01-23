@@ -9,21 +9,8 @@ if [ ! -f "${CONFIG_FILE}" ]; then
   cp "${DEFAULT_CONFIG}" "${CONFIG_FILE}"
 fi
 
-if [ -n "${PORT:-}" ]; then
-  tmp_cfg=$(mktemp)
-  awk -v port="$PORT" '
-    /^server:/ {print; in_server=1; addr_written=0; next}
-    in_server && /^  addr:/ {print "  addr: \":" port "\""; addr_written=1; next}
-    in_server && /^ [^ ]/ {in_server=0}
-    {print}
-    END {
-      if (port != "" && in_server == 0 && addr_written == 0) {
-        print "server:";
-        print "  addr: \":" port "\"";
-      }
-    }
-  ' "${CONFIG_FILE}" > "${tmp_cfg}"
-  CONFIG_FILE="${tmp_cfg}"
-fi
+# Port configuration is now handled natively by the application via PORT env var
+# and other settings via REDIS_ADDR, DATABASE_URL etc.
+# escaping fragile awk logic.
 
 exec /usr/local/bin/rag-server --config "${CONFIG_FILE}" "$@"
