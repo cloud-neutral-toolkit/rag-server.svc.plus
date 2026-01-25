@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/joho/godotenv"
+
 	"github.com/spf13/cobra"
 
 	rconfig "rag-server/internal/rag/config"
@@ -33,6 +35,7 @@ var rootCmd = &cobra.Command{
 	Use:   "rag-cli",
 	Short: "Synchronize repositories and ingest markdown files",
 	Run: func(cmd *cobra.Command, args []string) {
+		_ = godotenv.Load()
 		var level slog.Level
 		switch strings.ToLower(logLevel) {
 		case "debug":
@@ -83,7 +86,7 @@ var rootCmd = &cobra.Command{
 			if resolved := cfg.ResolveServerURL(); resolved != "" {
 				baseURL = resolved
 			} else {
-			baseURL = "http://localhost:8090"
+				baseURL = "http://localhost:8090"
 			}
 		}
 

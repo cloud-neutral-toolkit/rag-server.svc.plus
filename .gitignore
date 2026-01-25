@@ -1,3 +1,5 @@
+.env
+rag-cli
 models/
 pg_jieba/
 hf_cache/
@@ -10,6 +12,7 @@ docs/init-bak-20250813.sql
 .DS_Store
 ui/.DS_Store
 ui/*/.DS_Store
+xcontrol-server
 
 # Node.js dependencies
 ui/dl/node_modules/
