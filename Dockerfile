@@ -28,7 +28,7 @@ RUN apt-get update \
     && mkdir -p /var/run/stunnel \
     && chown -R nobody:nogroup /var/run/stunnel
 
-COPY config/server.yaml /etc/rag-server/server.yaml
+COPY config/rag-server.yaml /etc/rag-server/rag-server.yaml
 COPY --from=builder /src/rag-server /usr/local/bin/rag-server
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 

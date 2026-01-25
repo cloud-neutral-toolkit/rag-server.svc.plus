@@ -63,7 +63,7 @@ func registerAskAIRoutes(r *gin.RouterGroup) {
 }
 
 // ConfigPath points to the server configuration file.
-var ConfigPath = filepath.Join("server", "config", "server.yaml")
+var ConfigPath = filepath.Join("config", "rag-server.yaml")
 
 type serverConfig struct {
 	Models struct {

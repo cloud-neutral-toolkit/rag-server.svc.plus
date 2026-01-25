@@ -1,5 +1,6 @@
 .env
 rag-cli
+rag-server
 models/
 pg_jieba/
 hf_cache/
