@@ -6,7 +6,7 @@ The application uses `server.yaml` for base configuration but prioritizes Enviro
 
 | Setting | Env Variable | Default | Description |
 | :--- | :--- | :--- | :--- |
-| **Port** | `PORT` | `8090` | HTTP listening port. |
+| **Port** | `PORT` | `8080` | HTTP listening port. |
 | **Redis Address** | `REDIS_ADDR` | `127.0.0.1:6379` | Redis connection string. |
 | **Redis Password** | `REDIS_PASSWORD` | - | Redis password. |
 | **Database URL** | `DATABASE_URL` / `PG_URL` | - | Full Postgres connection URL (e.g., `postgres://user:pass@host:5432/db`). |

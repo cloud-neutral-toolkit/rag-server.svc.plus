@@ -86,7 +86,7 @@ var rootCmd = &cobra.Command{
 			if resolved := cfg.ResolveServerURL(); resolved != "" {
 				baseURL = resolved
 			} else {
-				baseURL = "http://localhost:8090"
+				baseURL = "http://localhost:8080"
 			}
 		}
 

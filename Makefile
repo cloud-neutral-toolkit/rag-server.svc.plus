@@ -1,5 +1,5 @@
 OS := $(shell uname -s)
-PORT := 8090
+PORT := 8080
 MODULE := rag-server
 APP_NAME := rag-server
 MAIN_FILE := cmd/rag-server/main.go

@@ -32,7 +32,7 @@ func TestLoad(t *testing.T) {
 	if cfg.API.AskAI.Timeout != 100 {
 		t.Fatalf("unexpected askai timeout %d", cfg.API.AskAI.Timeout)
 	}
-	if cfg.Server.Addr != ":8090" {
+	if cfg.Server.Addr != ":8080" {
 		t.Fatalf("unexpected server addr %q", cfg.Server.Addr)
 	}
 	if cfg.Server.ReadTimeout.Duration != 120*time.Second {

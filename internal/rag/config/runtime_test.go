@@ -59,8 +59,8 @@ func TestResolveServerURL(t *testing.T) {
 	}
 
 	cfg.Server.BaseURL = ""
-	cfg.Server.Addr = ":8090"
-	if got := cfg.ResolveServerURL(); got != "http://localhost:8090" {
+	cfg.Server.Addr = ":8080"
+	if got := cfg.ResolveServerURL(); got != "http://localhost:8080" {
 		t.Fatalf("unexpected addr conversion %q", got)
 	}
 
@@ -69,8 +69,8 @@ func TestResolveServerURL(t *testing.T) {
 		t.Fatalf("unexpected wildcard conversion %q", got)
 	}
 
-	cfg.Server.Addr = "127.0.0.1:8090"
-	if got := cfg.ResolveServerURL(); got != "http://localhost:8090" {
+	cfg.Server.Addr = "127.0.0.1:8080"
+	if got := cfg.ResolveServerURL(); got != "http://localhost:8080" {
 		t.Fatalf("expected loopback to map to localhost, got %q", got)
 	}
 

@@ -13,7 +13,7 @@ services:
     depends_on:
       - stunnel-client
     ports:
-      - "8090:8090"
+      - "8080:8080"
 
   stunnel-client:
     image: stunnel-client:local
@@ -43,7 +43,7 @@ services:
       dockerfile: deploy/rag-cli/Dockerfile
     command: ["--config", "/etc/rag-server/server.yaml"]
     environment:
-      SERVER_URL: "http://rag-server:8090"
+      SERVER_URL: "http://rag-server:8080"
     volumes:
       - ../config/server.yaml:/etc/rag-server/server.yaml:ro
     depends_on:
@@ -54,7 +54,7 @@ services:
     build:
       context: ..
       dockerfile: deploy/ragbench/Dockerfile
-    command: ["-in", "/data/queries.example.yaml", "-api", "http://rag-server:8090", "-out", "/data/report.md"]
+    command: ["-in", "/data/queries.example.yaml", "-api", "http://rag-server:8080", "-out", "/data/report.md"]
     volumes:
       - ../cmd/ragbench:/data
     depends_on:

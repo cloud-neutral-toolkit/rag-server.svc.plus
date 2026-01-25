@@ -1,5 +1,5 @@
 server:
-  addr: ":8090"
+  addr: ":8080"
   readTimeout: 120s
   writeTimeout: 120s
   publicUrl: "https://api.svc.plus"

@@ -54,7 +54,7 @@ The application uses `server.yaml` for base configuration but prioritizes Enviro
 
 | Setting | Env Variable | Default | Description |
 | :--- | :--- | :--- | :--- |
-| **Port** | `PORT` | `8090` | HTTP listening port. |
+| **Port** | `PORT` | `8080` | HTTP listening port. |
 | **Database URL** | `DATABASE_URL` / `PG_URL` | - | Full Postgres connection URL (e.g., `postgres://user:pass@host:5432/db`). |
 | **LLM Token** | `CHUTES_API_TOKEN` | - | API Token for the LLM provider. |
 | **LLM Endpoint** | `CHUTES_API_URL` | - | Base URL for LLM chat completions. |

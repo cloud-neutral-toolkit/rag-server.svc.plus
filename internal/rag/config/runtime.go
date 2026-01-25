@@ -104,7 +104,7 @@ func (c *Config) ResolveServerURL() string {
 	port = strings.TrimSpace(port)
 
 	if port == "" {
-		port = "8090"
+		port = "8080"
 	}
 
 	if host == "" || host == "0.0.0.0" || host == "127.0.0.1" {
