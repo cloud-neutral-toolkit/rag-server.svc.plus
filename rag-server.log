@@ -1,0 +1,23 @@
+2026/01/26 00:30:46 WARN load config err="yaml: line 27: did not find expected key"
+time=2026-01-26T00:30:46.914+08:00 level=WARN msg="postgres dsn not provided"
+time=2026-01-26T00:30:46.914+08:00 level=WARN msg="postgres cache disabled; no database connection"
+time=2026-01-26T00:30:46.914+08:00 level=WARN msg="server config" err="open server/config/server.yaml: no such file or directory"
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /api/users                --> rag-server/api.getUsers (3 handlers)
+[GIN-debug] GET    /api/nodes                --> rag-server/api.getNodes (3 handlers)
+[GIN-debug] POST   /api/sync                 --> rag-server/api.registerKnowledgeRoutes.func1 (3 handlers)
+[GIN-debug] POST   /api/rag/upsert           --> rag-server/api.registerRAGRoutes.func1 (3 handlers)
+[GIN-debug] POST   /api/rag/query            --> rag-server/api.registerRAGRoutes.func2 (3 handlers)
+[GIN-debug] POST   /api/askai                --> rag-server/api.registerAskAIRoutes.func1 (3 handlers)
+[GIN-debug] GET    /api/admin/settings       --> rag-server/api.getAdminSettings (3 handlers)
+[GIN-debug] POST   /api/admin/settings       --> rag-server/api.updateAdminSettings (3 handlers)
+time=2026-01-26T00:30:46.914+08:00 level=WARN msg="authentication is disabled"
+[GIN-debug] GET    /health                   --> main.init.func1.2 (3 handlers)
+[GIN-debug] GET    /healthz                  --> main.init.func1.2 (3 handlers)
+time=2026-01-26T00:30:46.914+08:00 level=INFO msg="configured cors" allowedOrigins="[http://localhost:3000 http://127.0.0.1:3000 http://localhost:3001 http://127.0.0.1:3001 https://localhost:8443]"
+time=2026-01-26T00:30:46.914+08:00 level=INFO msg="starting http server" addr=:8090
