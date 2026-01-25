@@ -7,19 +7,20 @@ SET lock_timeout = '5s';
 SET statement_timeout = '0';
 
 -- 1. 必要扩展：向量 + 中文分词
+-- 1. 必要扩展：向量 + 中文分词
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_jieba;
 CREATE EXTENSION IF NOT EXISTS hstore;
 
--- 2. 中文 + 英文混合全文检索配置（pg_jieba + simple）
+-- 2. 中文 + 英文混合全文检索配置（pg_jieba）
 -- 自定义配置名：jieba_search
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_ts_config WHERE cfgname = 'jieba_search') THEN
-    CREATE TEXT SEARCH CONFIGURATION jieba_search (PARSER = pg_jieba);
-    -- pg_jieba 的 token 类型包括：word, tag, symbol, number
+    CREATE TEXT SEARCH CONFIGURATION jieba_search (PARSER = jieba);
+    -- 占位符 mapping，稍后修正
     ALTER TEXT SEARCH CONFIGURATION jieba_search
-      ADD MAPPING FOR word, tag, symbol, number WITH simple;
+      ADD MAPPING FOR n, v WITH simple;
   END IF;
 END$$;
 

@@ -1,17 +1,36 @@
 OS := $(shell uname -s)
 PORT := 8090
-MODULE := xcontrol
-APP_NAME := xcontrol-server
-MAIN_FILE := cmd/xcontrol-server/main.go
+MODULE := rag-server
+APP_NAME := rag-server
+MAIN_FILE := cmd/rag-server/main.go
 
-DB_NAME := knowledge_db
-DB_USER := shenlan
-DB_HOST := 127.0.0.1
-DB_PORT := 5432
-DB_URL  := postgres://$(DB_USER):password@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
+# Load .env if exists
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
+# Defaults
+DB_NAME ?= knowledge_db
+DB_USER ?= shenlan
+DB_HOST ?= 127.0.0.1
+DB_PORT ?= 5432
+DB_PASSWORD ?= password
+
+# Override DB vars from env if present
+ifdef POSTGRES_USER
+    DB_USER := $(POSTGRES_USER)
+endif
+ifdef POSTGRES_PASSWORD
+    DB_PASSWORD := $(POSTGRES_PASSWORD)
+endif
+
+DB_URL := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
+DB_URL_ADMIN := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres?sslmode=disable
 SCHEMA_FILE := sql/schema.sql
 
 PSQL := psql "$(DB_URL)" -v ON_ERROR_STOP=1
+PSQL_ADMIN := psql "$(DB_URL_ADMIN)" -v ON_ERROR_STOP=1
 export PATH := /usr/local/go/bin:$(PATH)
 
 .PHONY: all build start stop restart clean init help dev test init-db reinit-db drop-db \
@@ -51,6 +70,8 @@ init:
 build: init
 	@echo ">>> 编译 $(APP_NAME)"
 	go build -o $(APP_NAME) $(MAIN_FILE)
+	@echo ">>> 编译 rag-cli"
+	go build -o rag-cli cmd/rag-cli/main.go
 
 start:
 	@echo ">>> 运行 $(APP_NAME) on port $(PORT) (后台运行)"
@@ -91,12 +112,20 @@ create-db:
 	@sudo -u postgres psql -d $(DB_NAME) -c "CREATE EXTENSION IF NOT EXISTS zhparser;"
 	@sudo -u postgres psql -d $(DB_NAME) -c "\dx"
 
-init-db:
+check-tokens:
+	@echo ">>> Check jieba tokens"
+	@$(PSQL_ADMIN) -c "\dFp+ jieba"
+
+ensure-db:
+	@echo ">>> Ensure database $(DB_NAME) exists"
+	@$(PSQL_ADMIN) -c "CREATE DATABASE $(DB_NAME);" || true
+
+init-db: ensure-db
 	@echo ">>> 初始化 RAG schema ($(SCHEMA_FILE))"
 	# 🧩 确保 public schema 归属正确（防止 zhparser 无法创建 TEXT SEARCH CONFIG）
 	@echo ">>> 检查并授权 public schema 所有权与 CREATE 权限"
-	@sudo -u postgres psql -d $(DB_NAME) -c "ALTER SCHEMA public OWNER TO $(DB_USER);" || true
-	@sudo -u postgres psql -d $(DB_NAME) -c "GRANT CREATE ON SCHEMA public TO $(DB_USER);" || true
+	@# sudo -u postgres psql -d $(DB_NAME) -c "ALTER SCHEMA public OWNER TO $(DB_USER);" || true
+	@# sudo -u postgres psql -d $(DB_NAME) -c "GRANT CREATE ON SCHEMA public TO $(DB_USER);" || true
 	@echo ">>> 初始化 RAG schema ($(SCHEMA_FILE))"
 	@$(PSQL) -f $(SCHEMA_FILE)
 
@@ -137,3 +166,31 @@ gcp-deploy:
 
 gcp-replace-service:
 	gcloud run services replace deploy/gcp/cloud-run/service.yaml --region $(GCP_REGION)
+
+# =========================================
+# 🧪 E2E Tests
+# =========================================
+
+e2e-deploy-gcp: build gcp-deploy
+
+e2e-integration-test:
+	@echo ">>> 检查 Stunnel"
+	@if ! pgrep -f "stunnel/rag-db-client.conf" > /dev/null; then \
+		echo "Starting Stunnel..."; \
+		stunnel deploy/stunnel/rag-db-client.conf; \
+		sleep 2; \
+	else \
+		echo "Stunnel already running"; \
+	fi
+	@$(MAKE) init-db
+	@echo ">>> 执行 rag-cli 导入操作 (测试)"
+	@# 创建临时测试文件 (rag-cli requires file in datasource dir)
+	@mkdir -p /tmp/xcontrol/knowledge
+	@echo "# Test Document\n\nThis is a test document for E2E testing." > /tmp/xcontrol/knowledge/e2e_test_doc.md
+	@# 运行 rag-cli 导入
+	@export TMPDIR=/tmp && ./rag-cli --config config/rag-server.yaml --file /tmp/xcontrol/knowledge/e2e_test_doc.md
+	@rm -f /tmp/xcontrol/knowledge/e2e_test_doc.md
+	@echo ">>> 重置数据库"
+	@$(MAKE) reinit-db
+	@echo ">>> 删除数据库 schema"
+	@$(MAKE) drop-db
