@@ -5,9 +5,9 @@ server:
   write_timeout: 120s
 auth:
   enable: true
-    authUrl: "https://rag-server-svc-plus-266500572462.asia-northeast1.run.app"
-    apiBaseUrl: "https://accounts-svc-plus-266500572462.asia-northeast1.run.app"
-    publicToken: ""
+  authUrl: "https://rag-server-svc-plus-266500572462.asia-northeast1.run.app"
+  apiBaseUrl: "https://accounts-svc-plus-266500572462.asia-northeast1.run.app"
+  publicToken: ""
 cache:
   table: "cache_kv"
   defaultTTL: 5m
