@@ -1,8 +1,8 @@
 OS := $(shell uname -s)
 PORT := 8090
-MODULE := xcontrol
-APP_NAME := xcontrol-server
-MAIN_FILE := cmd/xcontrol-server/main.go
+MODULE := rag-server
+APP_NAME := rag-server
+MAIN_FILE := cmd/rag-server/main.go
 
 DB_NAME := knowledge_db
 DB_USER := shenlan
@@ -51,6 +51,8 @@ init:
 build: init
 	@echo ">>> 编译 $(APP_NAME)"
 	go build -o $(APP_NAME) $(MAIN_FILE)
+	@echo ">>> 编译 rag-cli"
+	go build -o rag-cli cmd/rag-cli/main.go
 
 start:
 	@echo ">>> 运行 $(APP_NAME) on port $(PORT) (后台运行)"
@@ -137,3 +139,21 @@ gcp-deploy:
 
 gcp-replace-service:
 	gcloud run services replace deploy/gcp/cloud-run/service.yaml --region $(GCP_REGION)
+
+# =========================================
+# 🧪 E2E Tests
+# =========================================
+
+e2e-deploy-gcp: build gcp-deploy
+
+e2e-integration-test: init-db
+	@echo ">>> 执行 rag-cli 导入操作 (测试)"
+	@# 创建临时测试文件
+	@echo "# Test Document\n\nThis is a test document for E2E testing." > e2e_test_doc.md
+	@# 运行 rag-cli 导入
+	./rag-cli --file e2e_test_doc.md
+	@rm e2e_test_doc.md
+	@echo ">>> 重置数据库"
+	@$(MAKE) reinit-db
+	@echo ">>> 删除数据库 schema"
+	@$(MAKE) drop-db
