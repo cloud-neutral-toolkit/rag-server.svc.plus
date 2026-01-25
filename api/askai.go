@@ -91,8 +91,9 @@ func loadConfig() (string, string, string, time.Duration, int) {
 	retries := 3
 	data, err := os.ReadFile(ConfigPath)
 	if err == nil {
+		expanded := os.ExpandEnv(string(data))
 		var cfg serverConfig
-		if err := yaml.Unmarshal(data, &cfg); err == nil {
+		if err := yaml.Unmarshal([]byte(expanded), &cfg); err == nil {
 			g := cfg.Models.Generator
 			if model == "" && len(g.Models) > 0 {
 				model = g.Models[0]
