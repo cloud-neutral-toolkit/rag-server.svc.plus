@@ -112,6 +112,10 @@ create-db:
 	@sudo -u postgres psql -d $(DB_NAME) -c "CREATE EXTENSION IF NOT EXISTS zhparser;"
 	@sudo -u postgres psql -d $(DB_NAME) -c "\dx"
 
+check-tokens:
+	@echo ">>> Check jieba tokens"
+	@$(PSQL_ADMIN) -c "\dFp+ jieba"
+
 ensure-db:
 	@echo ">>> Ensure database $(DB_NAME) exists"
 	@$(PSQL_ADMIN) -c "CREATE DATABASE $(DB_NAME);" || true
@@ -180,11 +184,12 @@ e2e-integration-test:
 	fi
 	@$(MAKE) init-db
 	@echo ">>> 执行 rag-cli 导入操作 (测试)"
-	@# 创建临时测试文件
-	@echo "# Test Document\n\nThis is a test document for E2E testing." > e2e_test_doc.md
+	@# 创建临时测试文件 (rag-cli requires file in datasource dir)
+	@mkdir -p /tmp/xcontrol/knowledge
+	@echo "# Test Document\n\nThis is a test document for E2E testing." > /tmp/xcontrol/knowledge/e2e_test_doc.md
 	@# 运行 rag-cli 导入
-	./rag-cli --file e2e_test_doc.md
-	@rm e2e_test_doc.md
+	@export TMPDIR=/tmp && ./rag-cli --config config/rag-server.yaml --file /tmp/xcontrol/knowledge/e2e_test_doc.md
+	@rm -f /tmp/xcontrol/knowledge/e2e_test_doc.md
 	@echo ">>> 重置数据库"
 	@$(MAKE) reinit-db
 	@echo ">>> 删除数据库 schema"
