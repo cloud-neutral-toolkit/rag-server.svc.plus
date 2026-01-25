@@ -3,6 +3,11 @@ server:
   port: 8080
   read_timeout: 120s
   write_timeout: 120s
+  allowedOrigins:
+    - "https://www.svc.plus"
+    - "https://console.svc.plus"
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
 auth:
   enable: true
   authUrl: "https://rag-server-svc-plus-266500572462.asia-northeast1.run.app"
