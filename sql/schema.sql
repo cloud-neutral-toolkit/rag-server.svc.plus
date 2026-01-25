@@ -16,7 +16,7 @@ CREATE EXTENSION IF NOT EXISTS hstore;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_ts_config WHERE cfgname = 'jieba_search') THEN
-    CREATE TEXT SEARCH CONFIGURATION jieba_search (PARSER = pg_jieba);
+    CREATE TEXT SEARCH CONFIGURATION jieba_search (PARSER = jieba);
     -- pg_jieba 的 token 类型包括：word, tag, symbol, number
     ALTER TEXT SEARCH CONFIGURATION jieba_search
       ADD MAPPING FOR word, tag, symbol, number WITH simple;

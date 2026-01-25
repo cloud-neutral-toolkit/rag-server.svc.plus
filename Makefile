@@ -4,14 +4,33 @@ MODULE := rag-server
 APP_NAME := rag-server
 MAIN_FILE := cmd/rag-server/main.go
 
-DB_NAME := knowledge_db
-DB_USER := shenlan
-DB_HOST := 127.0.0.1
-DB_PORT := 5432
-DB_URL  := postgres://$(DB_USER):password@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
+# Load .env if exists
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
+# Defaults
+DB_NAME ?= knowledge_db
+DB_USER ?= shenlan
+DB_HOST ?= 127.0.0.1
+DB_PORT ?= 5432
+DB_PASSWORD ?= password
+
+# Override DB vars from env if present
+ifdef POSTGRES_USER
+    DB_USER := $(POSTGRES_USER)
+endif
+ifdef POSTGRES_PASSWORD
+    DB_PASSWORD := $(POSTGRES_PASSWORD)
+endif
+
+DB_URL := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
+DB_URL_ADMIN := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/postgres?sslmode=disable
 SCHEMA_FILE := sql/schema.sql
 
 PSQL := psql "$(DB_URL)" -v ON_ERROR_STOP=1
+PSQL_ADMIN := psql "$(DB_URL_ADMIN)" -v ON_ERROR_STOP=1
 export PATH := /usr/local/go/bin:$(PATH)
 
 .PHONY: all build start stop restart clean init help dev test init-db reinit-db drop-db \
@@ -93,12 +112,16 @@ create-db:
 	@sudo -u postgres psql -d $(DB_NAME) -c "CREATE EXTENSION IF NOT EXISTS zhparser;"
 	@sudo -u postgres psql -d $(DB_NAME) -c "\dx"
 
-init-db:
+ensure-db:
+	@echo ">>> Ensure database $(DB_NAME) exists"
+	@$(PSQL_ADMIN) -c "CREATE DATABASE $(DB_NAME);" || true
+
+init-db: ensure-db
 	@echo ">>> 初始化 RAG schema ($(SCHEMA_FILE))"
 	# 🧩 确保 public schema 归属正确（防止 zhparser 无法创建 TEXT SEARCH CONFIG）
 	@echo ">>> 检查并授权 public schema 所有权与 CREATE 权限"
-	@sudo -u postgres psql -d $(DB_NAME) -c "ALTER SCHEMA public OWNER TO $(DB_USER);" || true
-	@sudo -u postgres psql -d $(DB_NAME) -c "GRANT CREATE ON SCHEMA public TO $(DB_USER);" || true
+	@# sudo -u postgres psql -d $(DB_NAME) -c "ALTER SCHEMA public OWNER TO $(DB_USER);" || true
+	@# sudo -u postgres psql -d $(DB_NAME) -c "GRANT CREATE ON SCHEMA public TO $(DB_USER);" || true
 	@echo ">>> 初始化 RAG schema ($(SCHEMA_FILE))"
 	@$(PSQL) -f $(SCHEMA_FILE)
 
@@ -146,7 +169,16 @@ gcp-replace-service:
 
 e2e-deploy-gcp: build gcp-deploy
 
-e2e-integration-test: init-db
+e2e-integration-test:
+	@echo ">>> 检查 Stunnel"
+	@if ! pgrep -f "stunnel/rag-db-client.conf" > /dev/null; then \
+		echo "Starting Stunnel..."; \
+		stunnel deploy/stunnel/rag-db-client.conf; \
+		sleep 2; \
+	else \
+		echo "Stunnel already running"; \
+	fi
+	@$(MAKE) init-db
 	@echo ">>> 执行 rag-cli 导入操作 (测试)"
 	@# 创建临时测试文件
 	@echo "# Test Document\n\nThis is a test document for E2E testing." > e2e_test_doc.md
