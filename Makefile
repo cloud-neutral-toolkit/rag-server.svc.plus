@@ -162,7 +162,7 @@ gcp-deploy:
 		--source . \
 		--region $(GCP_REGION) \
 		--update-secrets="DATABASE_URL=admin_password:latest" \
-		--set-env-vars="PGADMIN_PASSWORD=admin_password"
+		--set-env-vars="POSTGRES_USER=$(POSTGRES_USER),POSTGRES_PASSWORD=$(POSTGRES_PASSWORD)"
 
 gcp-replace-service:
 	gcloud run services replace deploy/gcp/cloud-run/service.yaml --region $(GCP_REGION)

@@ -1,0 +1,57 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: 120s
+  write_timeout: 120s
+auth:
+  enable: true
+    authUrl: "https://rag-server-svc-plus-266500572462.asia-northeast1.run.app"
+    apiBaseUrl: "https://accounts-svc-plus-266500572462.asia-northeast1.run.app"
+    publicToken: ""
+cache:
+  table: "cache_kv"
+  defaultTTL: 5m
+vector_db:
+  pgurl: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/knowledge_db?sslmode=disable"
+  pg_host: "127.0.0.1"
+  pg_port: 5432
+  pg_user: "${POSTGRES_USER}"
+  pg_password: "${POSTGRES_PASSWORD}"
+  pg_db_name: "knowledge_db"
+  pg_sslmode: "disable"
+  datasources:
+    - name: knowledge 
+      repo: https://github.com/cloud-neutral-workshop/knowledge.git
+      path: /
+models:
+  embedder:
+    provider: "OpenAI"
+    token: '$NVIDIA_API_KEY'
+    models:
+      - "nvidia/nv-embedqa-e5-v5"
+    endpoint: "https://integrate.api.nvidia.com/v1"
+  generator:
+    provider: "OpenAI"
+    token: '$NVIDIA_API_KEY'
+    models:
+      - "minimaxai/minimax-m2"
+    endpoint: "https://integrate.api.nvidia.com/v1/chat/completions"
+
+embedding:
+  max_batch: 64
+  dimension: 1024
+  max_chars: 8000
+  rate_limit_tpm: 120000
+
+chunking:
+  embed_toc: true
+  max_tokens: 800
+  overlap_tokens: 80
+  prefer_heading_split: true
+  include_exts: [".md", ".mdx"]
+  ignore_dirs: [".git", "node_modules", "dist", "build"]
+
+api:
+  askai:
+    timeout: 100
+    retries: 3

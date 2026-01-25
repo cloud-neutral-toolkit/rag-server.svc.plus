@@ -13,7 +13,7 @@ RUN go mod download
 COPY . .
 
 # 编译 rag-server
-RUN CGO_ENABLED=0 go build -o rag-server ./cmd/xcontrol-server/main.go
+RUN CGO_ENABLED=0 go build -o rag-server ./cmd/rag-server/main.go
 
 # ------------------------------
 # Stage 2 — Runtime
