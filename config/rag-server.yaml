@@ -34,7 +34,7 @@ models:
     token: '$NVIDIA_API_KEY'
     models:
       - "nvidia/nv-embedqa-e5-v5"
-    endpoint: "https://integrate.api.nvidia.com/v1"
+    endpoint: "https://integrate.api.nvidia.com/v1/embeddings"
   generator:
     provider: "OpenAI"
     token: '$NVIDIA_API_KEY'
