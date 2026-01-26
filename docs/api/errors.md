@@ -7,7 +7,8 @@ Common error responses:
 - `403 Forbidden`: wrong role, missing role header, or invalid `service` claim.
 - `409 Conflict`: admin settings version mismatch.
 - `500 Internal Server Error`: unhandled server errors.
-- `503 Service Unavailable`: database not initialized or vector store unavailable.
+- `503 Service Unavailable`: service database not initialized or vector store
+  unavailable.
 
 All errors are JSON objects with an `error` field:
 

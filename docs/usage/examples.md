@@ -8,6 +8,8 @@ curl -s http://localhost:8080/api/askai \
   -d '{"question":"What is this service?"}'
 ```
 
+If RAG has not been initialized yet, the response includes `"chunks": null`.
+
 ## RAG query
 
 ```bash
@@ -18,7 +20,8 @@ curl -s http://localhost:8080/api/rag/query \
 
 ## Upsert documents
 
-`/api/rag/upsert` expects pre-embedded vectors. Typically use `rag-cli` instead. A minimal shape:
+`/api/rag/upsert` expects pre-embedded vectors. Typically use `rag-cli` instead. A
+minimal shape:
 
 ```json
 {

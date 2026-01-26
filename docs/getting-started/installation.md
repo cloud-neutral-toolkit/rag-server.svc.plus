@@ -21,14 +21,18 @@ docker run -p 8080:8080 \
   rag-server:local
 ```
 
-The container entrypoint looks for a config file at `/etc/rag-server/rag-server.yaml` (or `/etc/rag-server/server.yaml`) and will copy from `/app/config` if present.
+The container entrypoint looks for a config file at `/etc/rag-server/server.yaml`
+by default and will copy from `/app/config` if present.
 
 ## Configuration file locations
 
 The server resolves config in this order:
 
 1. `--config <path>` flag
-2. `config/rag-server.yaml` if present
+2. `config/rag-server.yaml` if present (legacy filename)
 3. `config/server.yaml`
 
-For container deployments, use `CONFIG_PATH=/etc/rag-server/rag-server.yaml` to point the process at the mounted config.
+Prefer `config/server.yaml` for new deployments.
+
+For container deployments, use `CONFIG_PATH=/etc/rag-server/server.yaml` to point
+the process at the mounted config.

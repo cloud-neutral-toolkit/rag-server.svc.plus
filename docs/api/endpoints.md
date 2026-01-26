@@ -2,7 +2,8 @@
 
 ## POST /api/askai
 
-Generate an answer from the configured chat completion provider. If RAG is initialized, retrieved chunks are also returned.
+Generate an answer from the configured chat completion provider. If RAG is
+initialized, retrieved chunks are also returned.
 
 Request:
 
@@ -21,11 +22,20 @@ Response:
 }
 ```
 
-Errors: `500` with `{ "error": "...", "config": {"timeout": <sec>, "retries": <n>} }`.
+Notes:
+
+- RAG is initialized lazily by the RAG endpoints. If it has not been initialized,
+  `"chunks"` will be `null`.
+
+Errors:
+
+- `400` on invalid JSON.
+- `500` with `{ "error": "...", "config": {"timeout": <sec>, "retries": <n>} }`.
 
 ## POST /api/rag/query
 
-Hybrid retrieval only (no generation). The server currently returns top 5 chunks.
+Hybrid retrieval only (no generation). The server currently returns the top 5
+chunks.
 
 Request:
 
@@ -44,6 +54,7 @@ Errors:
 - `400` on invalid JSON
 - `500` on unexpected failures
 - `4xx/5xx` propagated from embedding provider
+- `200` with `"chunks": null` if the RAG service is not initialized
 
 ## POST /api/rag/upsert
 
@@ -75,6 +86,10 @@ Response:
 
 Errors: `503` if the vector store is unavailable.
 
+Notes:
+
+- If the RAG service is not initialized, the response is `200` with `{ "rows": 0 }`.
+
 ## POST /api/sync
 
 Sync a Git repository to a local directory.
@@ -90,6 +105,11 @@ Response:
 ```json
 { "status": "synced" }
 ```
+
+Errors:
+
+- `400` on invalid JSON
+- `500` when the repo sync fails
 
 ## GET /api/users
 
@@ -127,4 +147,11 @@ Response:
 
 Conflict:
 
-- `409` with `{ "error": "admin settings version conflict", "version": <current>, "matrix": <current> }`
+- `409` with `{ "error": "admin settings version conflict", "version": <current>,
+  "matrix": <current> }`
+
+Errors:
+
+- `400` on invalid JSON or unsupported role values in the matrix
+- `403` when the caller is not `admin` or `operator`
+- `503` when the service database is not initialized

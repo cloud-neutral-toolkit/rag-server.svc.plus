@@ -15,7 +15,7 @@ This guide gets the server running locally with a minimal config and a test upse
 Copy the example config and update database and model settings:
 
 ```bash
-cp example/config/server.yaml config/rag-server.yaml
+cp example/config/server.yaml config/server.yaml
 ```
 
 Then edit at least:
@@ -39,7 +39,7 @@ psql "${DATABASE_URL}" -c "CREATE EXTENSION IF NOT EXISTS hstore;"
 ```bash
 make dev
 # or
-# go run cmd/rag-server/main.go --config config/rag-server.yaml
+# go run cmd/rag-server/main.go --config config/server.yaml
 ```
 
 The server listens on `:8080` by default.
@@ -61,7 +61,7 @@ This is a test document.
 DOC
 
 # Upsert the file
-SERVER_URL=http://localhost:8080 ./rag-cli --config config/rag-server.yaml --file /tmp/xcontrol/knowledge/hello.md
+SERVER_URL=http://localhost:8080 ./rag-cli --config config/server.yaml --file /tmp/xcontrol/knowledge/hello.md
 ```
 
 ## 6) Query

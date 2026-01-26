@@ -5,15 +5,17 @@
 ```bash
 docker build -t rag-server:local .
 docker run -p 8080:8080 \
-  -e CONFIG_PATH=/etc/rag-server/rag-server.yaml \
-  -v $(pwd)/config/rag-server.yaml:/etc/rag-server/rag-server.yaml:ro \
+  -e CONFIG_PATH=/etc/rag-server/server.yaml \
+  -v $(pwd)/config/server.yaml:/etc/rag-server/server.yaml:ro \
   -e DATABASE_URL="postgres://user:pass@host:5432/db?sslmode=disable" \
   rag-server:local
 ```
 
 ## Docker Compose
 
-See `deploy/docker-compose.yaml` for a full local stack (rag-server + stunnel + caddy + rag-cli + ragbench). The server expects a mounted config at `/etc/rag-server/server.yaml`.
+See `deploy/docker-compose.yaml` for a full local stack (rag-server + stunnel + caddy
++ rag-cli + ragbench). The server expects a mounted config at
+`/etc/rag-server/server.yaml`.
 
 ## Cloud Run
 
@@ -35,4 +37,5 @@ gcloud run deploy rag-server-svc-plus \
 
 ## Systemd
 
-A systemd example service exists in `deploy/systemd` (for bare-metal or VM setups). Ensure the config file path matches your deployment layout.
+A systemd example service exists in `deploy/systemd` (for bare-metal or VM setups).
+Ensure the config file path matches your deployment layout.

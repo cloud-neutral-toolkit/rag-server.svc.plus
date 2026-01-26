@@ -38,5 +38,5 @@ If you see `zhcn_search` missing, ensure:
 ## Config file not found
 
 - Confirm `--config` path
-- Or place the config at `config/rag-server.yaml`
+- Or place the config at `config/server.yaml`
 - In containers, set `CONFIG_PATH` and mount the file into the image

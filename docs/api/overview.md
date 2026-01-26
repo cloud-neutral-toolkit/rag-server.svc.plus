@@ -13,4 +13,5 @@ Primary endpoints:
 - Admin settings: `/api/admin/settings`
 - Metadata: `/api/users`, `/api/nodes`
 
-Health checks are outside `/api` at `/health`, `/healthz`, and `/ping` (ping only when auth is enabled).
+Health checks are outside `/api` at `/health`, `/healthz`, and `/ping` (ping only
+when auth is enabled).
