@@ -26,14 +26,16 @@ type User struct {
 }
 
 type Node struct {
-	ID        string    `gorm:"type:uuid;primaryKey" json:"id"`
-	Name      string    `json:"name"`
-	Location  string    `json:"location"`
-	Protocols string    `json:"protocols"`
-	Address   string    `json:"address"`
-	Available bool      `json:"available"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID         string    `gorm:"type:uuid;primaryKey" json:"id"`
+	Name       string    `json:"name"`
+	Location   string    `json:"location"`
+	Protocols  string    `json:"protocols"`
+	Address    string    `json:"address"`
+	Port       int       `json:"port"`
+	ServerName string    `json:"server_name"`
+	Available  bool      `json:"available"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 const (
