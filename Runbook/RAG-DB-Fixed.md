@@ -41,7 +41,7 @@ WARN: postgres cache disabled; no database connection
            ↓
 ┌─────────────────────┐
 │  postgresql         │
-│  .onwalk.net:443    │
+│  .svc.plus:443       │
 └──────────┬──────────┘
            │
            ↓
@@ -70,7 +70,7 @@ gcloud run services update rag-server-svc-plus \
   --region asia-northeast1 \
   --project xzerolab-480008 \
   --update-env-vars="\
-DB_TLS_HOST=postgresql.onwalk.net,\
+DB_TLS_HOST=postgresql.svc.plus,\
 DB_TLS_PORT=443,\
 POSTGRES_USER=postgres,\
 POSTGRES_PASSWORD=otdcRLTJamszk3AE,\
