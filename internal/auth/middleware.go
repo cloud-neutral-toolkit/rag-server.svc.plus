@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -62,6 +63,47 @@ func (s *TokenService) AuthMiddleware() gin.HandlerFunc {
 		}
 
 		applyClaims(c, claims)
+
+		c.Next()
+	}
+}
+
+// InternalAuthMiddleware validates internal service-to-service authentication
+// using a shared token from the X-Service-Token header
+func InternalAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		serviceToken := c.GetHeader("X-Service-Token")
+		if serviceToken == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "missing service token",
+			})
+			c.Abort()
+			return
+		}
+
+		expectedToken := os.Getenv("INTERNAL_SERVICE_TOKEN")
+		if expectedToken == "" {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "internal service token not configured",
+			})
+			c.Abort()
+			return
+		}
+
+		if serviceToken != expectedToken {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid service token",
+			})
+			c.Abort()
+			return
+		}
+
+		// Set internal service context
+		ctx := context.WithValue(c.Request.Context(), userIDKey, "system")
+		ctx = context.WithValue(ctx, emailKey, "internal@system.service")
+		ctx = context.WithValue(ctx, rolesKey, []string{"internal_service"})
+		ctx = context.WithValue(ctx, serviceKey, "rag-server")
+		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()
 	}
