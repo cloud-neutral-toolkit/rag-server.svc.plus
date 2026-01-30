@@ -2,6 +2,7 @@ package api
 
 import (
 	server "rag-server"
+	"rag-server/internal/auth"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -12,6 +13,10 @@ import (
 func RegisterRoutes(conn *pgx.Conn, repoProxy string) server.Registrar {
 	return func(r *gin.Engine) {
 		api := r.Group("/api")
+
+		// Apply internal service authentication
+		api.Use(auth.InternalAuthMiddleware())
+
 		registerUserRoutes(api)
 		registerNodeRoutes(api.Group("/agent"))
 		registerKnowledgeRoutes(api, conn, repoProxy)
